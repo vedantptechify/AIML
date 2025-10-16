@@ -1,0 +1,486 @@
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+import os 
+from bs4 import BeautifulSoup
+import time
+import pandas as pd
+from google import genai
+from google.genai import types
+from google.genai.types import Content, Part
+import gspread
+from google.oauth2.service_account import Credentials
+from dotenv import load_dotenv
+load_dotenv()
+
+GOOGLE_API_KEY="AIzaSyBnNerF_9a61v7zUnrF-sZgVov-2VtUHBA"
+# Screen dimensions
+SCREEN_WIDTH = 1440
+SCREEN_HEIGHT = 900
+
+class GeminiScrollHelper:
+    """Helper class to use Gemini Computer Use ONLY for scrolling"""
+    
+    def __init__(self, driver):
+        self.driver = driver
+        self.client = genai.Client(api_key=GOOGLE_API_KEY)
+        self.screen_width = SCREEN_WIDTH
+        self.screen_height = SCREEN_HEIGHT
+    
+    def denormalize_x(self, x: int) -> int:
+        return int(x / 1000 * self.screen_width)
+    
+    def denormalize_y(self, y: int) -> int:
+        return int(y / 1000 * self.screen_height)
+    
+    def capture_screenshot(self) -> bytes:
+        return self.driver.get_screenshot_as_png()
+    
+    def execute_scroll_action(self, candidate):
+        """Execute ONLY scroll actions from Gemini"""
+        from selenium.webdriver.common.action_chains import ActionChains
+        actions = ActionChains(self.driver)
+        
+        for part in candidate.content.parts:
+            if part.function_call:
+                fname = part.function_call.name
+                args = part.function_call.args
+                
+                print(f" -> Executing: {fname}")
+                
+                try:
+                    if fname == "scroll_at":
+                        actual_x = self.denormalize_x(args["x"])
+                        actual_y = self.denormalize_y(args["y"])
+                        direction = args["direction"]
+                        magnitude = args.get("magnitude", 800)
+                        actual_magnitude = self.denormalize_y(magnitude)
+                        
+                        # Find element at position
+                        element = self.driver.execute_script(
+                            f"return document.elementFromPoint({actual_x}, {actual_y})"
+                        )
+                        
+                        if element:
+                            scroll_script = f"""
+                            arguments[0].scrollBy({{
+                                left: {actual_magnitude if direction == 'right' else -actual_magnitude if direction == 'left' else 0},
+                                top: {actual_magnitude if direction == 'down' else -actual_magnitude if direction == 'up' else 0},
+                                behavior: 'smooth'
+                            }});
+                            """
+                            self.driver.execute_script(scroll_script, element)
+                        
+                        time.sleep(2)
+                        return True
+                        
+                    elif fname == "scroll_document":
+                        direction = args["direction"]
+                        scroll_amount = 500
+                        
+                        if direction == "down":
+                            self.driver.execute_script(f"window.scrollBy(0, {scroll_amount})")
+                        elif direction == "up":
+                            self.driver.execute_script(f"window.scrollBy(0, -{scroll_amount})")
+                        
+                        time.sleep(2)
+                        return True
+                        
+                except Exception as e:
+                    print(f"Error executing {fname}: {e}")
+        
+        return False
+    
+    def scroll_popup_with_gemini(self, popup_element, num_scrolls=10):
+        """Use Gemini to scroll the popup multiple times"""
+        print(f"\n=== Using Gemini Computer Use to scroll popup ===")
+        
+        config = types.GenerateContentConfig(
+            tools=[
+                types.Tool(
+                    computer_use=types.ToolComputerUse(
+                        environment=types.Environment.ENVIRONMENT_BROWSER
+                        
+                    )
+                )
+            ],
+        )
+        
+        initial_screenshot = self.capture_screenshot()
+        scroll_prompt = f"""
+        You see a LinkedIn reactions popup/modal on the screen.
+        Please scroll DOWN inside this popup {num_scrolls} times to load more people.
+        
+        Instructions:
+        
+        1. Scroll down inside that popup area multiple times
+        2. Wait a moment between scrolls to let content load
+        3. After {num_scrolls} scrolls, tell me you're done
+        
+        Use scroll_at to scroll the specific popup element, not the main page.
+        """
+        
+        contents = [
+            Content(
+                role="user",
+                parts=[
+                    Part(text=scroll_prompt),
+                    Part.from_bytes(
+                        data=initial_screenshot,
+                        mime_type='image/png'
+                    )
+                ]
+            )
+        ]
+        
+        # Scrolling loop
+        for turn in range(num_scrolls + 5):  # Extra turns for safety
+            response = self.client.models.generate_content(
+                model='gemini-2.5-computer-use-preview-10-2025',
+                contents=contents,
+                config=config,
+            )
+            
+            candidate = response.candidates[0]
+            contents.append(candidate.content)
+            
+            has_function_calls = any(
+                part.function_call for part in candidate.content.parts
+            )
+            
+            if not has_function_calls:
+                text_response = " ".join([
+                    part.text for part in candidate.content.parts if part.text
+                ])
+                print(f"Scrolling completed: {text_response}")
+                break
+            
+            # Execute scroll
+            scrolled = self.execute_scroll_action(candidate)
+            
+            # Get new screenshot
+            screenshot_bytes = self.capture_screenshot()
+            current_url = self.driver.current_url
+            
+            # Send response back
+            function_response_parts = []
+            for part in candidate.content.parts:
+                if part.function_call:
+                    function_response_parts.append(
+                        Part(
+                            function_response=types.FunctionResponse(
+                                name=part.function_call.name,
+                                response={"url": current_url, "status": "scrolled" if scrolled else "failed"}
+                            )
+                        )
+                    )
+            
+            function_response_parts.append(
+                Part.from_bytes(
+                    data=screenshot_bytes,
+                    mime_type="image/png"
+                )
+            )
+            
+            contents.append(
+                Content(
+                    role="user",
+                    parts=function_response_parts
+                )
+            )
+        
+        print("=== Gemini scrolling complete ===\n")
+
+
+# Initialize your data sheets
+
+values_sheet = pd.DataFrame(columns=["date", "name", "linkedin", "link", "category"])
+repost_sheet = pd.DataFrame(columns=["date", "name", "link"])
+
+# 1. Launch browser & login
+# SCREEN_WIDTH = 1440
+# SCREEN_HEIGHT = 900
+# options = Options()
+# options.add_argument("--headless=new")  # Use the new headless mode (Chrome 109+)
+# options.add_argument(f"--window-size={SCREEN_WIDTH},{SCREEN_HEIGHT}")
+# options.add_argument("--disable-gpu")
+# options.add_argument("--no-sandbox")
+# options.add_argument("--disable-dev-shm-usage")
+
+# # Optional (helps avoid some detection)
+# options.add_argument("--disable-blink-features=AutomationControlled")
+# options.add_argument("--disable-infobars")
+
+# # Create driver with options
+# driver = webdriver.Chrome(service=Service(), options=options)
+
+
+
+
+driver = webdriver.Chrome()
+driver.maximize_window()
+driver.set_window_size(SCREEN_WIDTH, SCREEN_HEIGHT)
+
+driver.get("https://www.linkedin.com/login")
+
+username = driver.find_element(By.ID, "username")
+password = driver.find_element(By.ID, "password")
+
+
+EMAIL=os.getenv("EMAIL")
+PASS=os.getenv("PASS")
+username.send_keys(EMAIL)
+password.send_keys(PASS)
+driver.find_element(By.XPATH, "//button[@type='submit']").click()
+
+WebDriverWait(driver, 20).until(EC.presence_of_element_located((By.TAG_NAME, "body")))
+time.sleep(25)
+
+# Initialize Gemini scroll helper
+scroll_helper = GeminiScrollHelper(driver)
+
+# Robust scroller for LinkedIn reactions modal
+from selenium.webdriver.common.action_chains import ActionChains
+
+def scroll_linkedin_modal(driver, base_element, max_scrolls: int = 20, pause: float = 1.0):
+    """Scroll the LinkedIn reactions modal reliably.
+    - Finds the true scrollable container inside the modal
+    - Performs incremental scrolls with waits for lazy-loaded content
+    - Stops early if no more content loads
+    """
+    # Find the actual scrollable container
+    scrollable = driver.execute_script(
+        """
+        function getScrollable(el){
+          let current = el;
+          while (current && current !== document.body){
+            const style = getComputedStyle(current);
+            const oy = style.overflowY;
+            if ((oy === 'auto' || oy === 'scroll') && current.scrollHeight > current.clientHeight){
+              return current;
+            }
+            current = current.parentElement;
+          }
+          // Fallback: pick the tallest scrollable candidate in dialog
+          const root = el.closest('div[role="dialog"], div.artdeco-modal, body') || document.body;
+          const candidates = Array.from(root.querySelectorAll('div, ul, section')).filter(e => e.scrollHeight > e.clientHeight);
+          if (candidates.length){
+            candidates.sort((a,b) => (b.clientHeight - a.clientHeight));
+            return candidates[0];
+          }
+          return document.scrollingElement || document.documentElement;
+        }
+        return getScrollable(arguments[0]);
+        """,
+        base_element,
+    )
+
+    last_heights = []
+    last_count = -1
+    for _ in range(max_scrolls):
+        try:
+            total_height, client_height, scroll_top = driver.execute_script(
+                "return [arguments[0].scrollHeight, arguments[0].clientHeight, arguments[0].scrollTop];",
+                scrollable,
+            )
+            # Scroll by ~80% of viewport height for the container
+            step = int(max(300, client_height * 0.8))
+            driver.execute_script("arguments[0].scrollBy(0, arguments[1]);", scrollable, step)
+        except Exception:
+            # Fallback to wheel event if direct scroll fails
+            driver.execute_script(
+                "arguments[0].dispatchEvent(new WheelEvent('wheel', {deltaY: 800, bubbles: true, cancelable: true}));",
+                scrollable,
+            )
+        time.sleep(pause)
+
+        # Detect content growth using item count if present
+        try:
+            container_html = scrollable.get_attribute("innerHTML")
+        except Exception:
+            container_html = base_element.get_attribute("innerHTML")
+        current_items = container_html.count("social-details-reactors-tab-body-list-item")
+
+        # Track heights and item count to detect stalling
+        last_heights.append(total_height)
+        if current_items == last_count and len(last_heights) >= 3 and len(set(last_heights[-3:])) == 1:
+            # No change over 3 iterations
+            break
+        last_count = current_items
+
+    # Ensure we're at the bottom once more
+    try:
+        driver.execute_script(
+            "arguments[0].scrollTop = arguments[0].scrollHeight;",
+            scrollable,
+        )
+        time.sleep(1)
+    except Exception:
+        pass
+
+
+# Define the scope
+scope = ['https://spreadsheets.google.com/feeds', 'https://www.googleapis.com/auth/drive']
+
+# Load credentials from the JSON file
+scope = ['https://spreadsheets.google.com/feeds', 'https://www.googleapis.com/auth/drive']
+
+private_key = os.getenv("GOOGLE_PRIVATE_KEY")
+
+# Fix newlines
+private_key = private_key.replace("\\n", "\n")
+
+# Load credentials from the JSON file
+creds = Credentials.from_service_account_info({
+    "type": os.getenv("GOOGLE_TYPE"),
+    "project_id": os.getenv("GOOGLE_PROJECT_ID"),
+    "private_key_id": os.getenv("GOOGLE_PRIVATE_KEY_ID"),
+    "private_key": private_key,
+    "client_email": os.getenv("GOOGLE_CLIENT_EMAIL"),
+    "client_id": os.getenv("GOOGLE_CLIENT_ID"),
+    "token_uri": "https://oauth2.googleapis.com/token",
+}, scopes=scope)
+
+# Connect to Google Sheet
+client = gspread.authorize(creds)
+Sheet_id=os.getenv("SHEET_ID")
+# Open the spreadsheet by name or ID
+spreadsheet = client.open_by_key(Sheet_id) # or client.open_by_key("Your Spreadsheet ID")
+
+# Select a worksheet
+worksheet_links = spreadsheet.worksheet("URLs")
+worksheet_likes=spreadsheet.worksheet("LINKEDIN")
+# Read data
+
+data = worksheet_links.get_all_values()
+for i in data[1:]:
+    print(i[1])
+
+
+
+for i in data[1:]:
+    dates = i[0]
+    
+    # 2. Open LinkedIn post
+    post_url = i[1]
+    driver.get(post_url)
+    wait = WebDriverWait(driver, 5)
+
+    # 3. Open reactions popup
+    try:
+        like_button = wait.until(EC.element_to_be_clickable(
+            (By.XPATH, "//button[contains(@aria-label,' reactions') or contains(@aria-label,' likes')]")
+        ))
+        like_button.click()
+        time.sleep(3)
+
+        # 4. Wait for popup to appear
+        popup = wait.until(EC.presence_of_element_located((By.CLASS_NAME, "scaffold-finite-scroll__content")))
+
+        # Scroll the reactions modal reliably
+        print("🌀 Scrolling reactions modal...")
+        scroll_linkedin_modal(driver, popup, max_scrolls=25, pause=1.2)
+        print("✅ Scrolling complete!")
+
+        # 5. Extract names & profile URLs
+        # Read from the true scrollable container to include all loaded items
+        scrollable_for_html = driver.execute_script(
+            """
+            function getScrollable(el){
+              let current = el;
+              while (current && current !== document.body){
+                const style = getComputedStyle(current);
+                const oy = style.overflowY;
+                if ((oy === 'auto' || oy === 'scroll') && current.scrollHeight > current.clientHeight){
+                  return current;
+                }
+                current = current.parentElement;
+              }
+              const root = el.closest('div[role=\"dialog\"], div.artdeco-modal, body') || document.body;
+              const candidates = Array.from(root.querySelectorAll('div, ul, section')).filter(e => e.scrollHeight > e.clientHeight);
+              if (candidates.length){
+                candidates.sort((a,b) => (b.clientHeight - a.clientHeight));
+                return candidates[0];
+              }
+              return el;
+            }
+            return getScrollable(arguments[0]);
+            """,
+            popup,
+        )
+        html = scrollable_for_html.get_attribute("innerHTML")
+        soup = BeautifulSoup(html, "html.parser")
+
+        results = []
+        time.sleep(3)
+        
+        # Loop through each liker item
+        for li in soup.select("li.social-details-reactors-tab-body-list-item"):
+            time.sleep(0.5)
+            
+            # Profile link
+            profile_tag = li.select_one("a[href*='/in/']")
+            profile_url = profile_tag["href"] if profile_tag else None
+
+            # Name
+            name_tag = li.select_one("span.text-view-model")
+            name = name_tag.get_text(strip=True) if name_tag else None
+
+            if name and profile_url:
+                new_row = {
+                    "date": dates,
+                    "name": name,
+                    "linkedin": profile_url,
+                    "link": i[1],
+                    "category": "like"
+                }
+                values_sheet = pd.concat([values_sheet, pd.DataFrame([new_row])], ignore_index=True)
+                print(f"✓ Extracted: {name}")
+        
+        # Close popup
+        close_button = WebDriverWait(driver, 10).until(
+        EC.element_to_be_clickable((By.XPATH, "//button[@aria-label='Dismiss']"))
+        )
+        close_button.click()
+        time.sleep(5)
+            
+    except Exception as e:
+        print(f"Error processing likes: {e}")
+
+    
+    
+    # Handle reposts
+    # try:
+    #     repost_button = driver.find_element(By.XPATH, "//button[contains(@aria-label,' reposts')]")
+    #     repost_button.click()
+    
+    #     time.sleep(5)
+
+    #     popup = driver.find_element(By.XPATH, "//div[@role='dialog']")  # Repost popup container
+        
+    #     # ===== USE GEMINI FOR REPOST SCROLLING TOO =====
+    #     print("🤖 Scrolling repost popup with Gemini...")
+    #     scroll_helper.scroll_popup_with_gemini(popup, num_scrolls=5)
+        
+    #     # Extract repost names
+    #     names_elements = popup.find_elements(By.XPATH, ".//a[contains(@href,'/in/')]")
+    #     names_repost = [name.text for name in names_elements if name.text.strip() != ""]
+    #     for a in names_repost:
+    #         new_row2 = {"date": dates, "name": a,"link":i}
+    #         repost_sheet = pd.concat([repost_sheet, pd.DataFrame([new_row2])], ignore_index=True)
+            
+    # except Exception as e:
+    #     print(f"Repost popup button not found or error: {e}")
+    
+    # # Save after each post
+    # values_sheet.to_excel("C:/Users/patel/OneDrive/Desktop/values.xlsx", index=False)
+    # repost_sheet.to_excel("C:/Users/patel/OneDrive/Desktop/reposts.xlsx", index=False)
+    print(f"💾 Saved data for post: {i}\n")
+    worksheet_likes.update(
+    [values_sheet.columns.values.tolist()] + values_sheet.astype(str).values.tolist()
+)
+
+print("✅ All posts processed!")
+print(repost_sheet)
+driver.quit()
