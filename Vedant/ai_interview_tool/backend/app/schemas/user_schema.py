@@ -1,2 +1,0 @@
-# User validation schemas
-

@@ -1,2 +1,0 @@
-# CRUD endpoints for users
-
