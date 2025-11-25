@@ -1,0 +1,1360 @@
+{
+  "name": "TechCrunch Latest News Scraper (RSS Feed)",
+  "nodes": [
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=technologies:(Web Development:{{ $json.Technology['Web Development'] }}\nDevOps & Automation:{{ $json.Technology['DevOps & Automation'] }}\nMobile App Development:{{ $json.Technology['Mobile App Development'] }}\nQuality Assurance Service:{{ $json.Technology['Quality Assurance Service'] }}\nOther:{{ $json.Technology.Other }})\nthese are the technologies that are used in my company .\nnews headlines:({{ $json.headlines }})\ngo through these news and match the relevance of these news with the technologies provided.\noutput: return the top 5 most relavent news headline in json format .(20 max words) ",
+        "hasOutputParser": true,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3,
+      "position": [
+        -6784,
+        -416
+      ],
+      "id": "be787479-0e0e-4ec8-857f-85a8cdad6040",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "{\"Technology\":{\n  \"Web Development\":\"React JS,Node.Js,Python,Angular,Java,RDBMS,Software Product Development,API Development\",\n  \"DevOps & Automation\":\"Terraform,Kubernetes,Jenkins,AWS\",\n  \"Mobile App Development\":\"Android,IOS,Flutter,React Native\",\n  \"Quality Assurance Service\":\"Manual Testing,Automation Testing\",\n  \"Other\":\"AI/ML Services,Digital Transformation,UI/UX,IT Advisory And Consulting,Application Maintenance,CRM,IT Staff Augmentation\"}\n}\n",
+        "options": {}
+      },
+      "id": "db750d6e-9a40-458a-bf67-5d59f3dae7a1",
+      "name": "Configure Technologies",
+      "type": "n8n-nodes-base.set",
+      "position": [
+        -7296,
+        -496
+      ],
+      "typeVersion": 3.3
+    },
+    {
+      "parameters": {
+        "model": "gpt-4o-mini",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatAzureOpenAi",
+      "typeVersion": 1,
+      "position": [
+        -6784,
+        -240
+      ],
+      "id": "ae523cf0-d81e-4af6-b3fa-581a2c0dab96",
+      "name": "Azure OpenAI Chat Model2",
+      "credentials": {
+        "azureOpenAiApi": {
+          "id": "qXO4Ti1Hn1SutJZp",
+          "name": "Azure Open AI account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n  \"news\": [\n    {\n      \"headline\": \"string\"\n    },\n    {\n      \"headline\": \"string\"\n    }\n  ]\n}",
+        "autoFix": true
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        -6720,
+        -160
+      ],
+      "id": "9d5139a4-20b5-4872-955e-b6d249df41a5",
+      "name": "Structured Output Parser"
+    },
+    {
+      "parameters": {
+        "sendTo": "patelvedant1011@gmail.com",
+        "subject": "today ai topics ",
+        "message": "=<!doctype html>\n<html>\n<head>\n  <meta charset=\"utf-8\">\n  <title>Select Any Topic</title>\n\n  <style>\n    body {\n      font-family: Arial, sans-serif;\n      background:#f5f7fa;\n      padding:20px;\n    }\n    .container {\n      max-width:700px;\n      margin:auto;\n      background:#ffffff;\n      padding:20px;\n      border-radius:8px;\n      box-shadow:0 4px 12px rgba(0,0,0,0.08);\n    }\n    h2 {\n      margin-top:0;\n      font-size:20px;\n    }\n\n    /* NEWS ITEM LAYOUT */\n    .item {\n      width:100%;\n      border:1px solid #e5e7eb;\n      padding:12px 16px;\n      border-radius:8px;\n      margin-bottom:12px;\n\n      /* Email-safe table layout */\n      display:table;\n      table-layout:fixed;\n      width:100%;\n    }\n    .text {\n      display:table-cell;\n      vertical-align:middle;\n      font-size:14px;\n      font-weight:600;\n      color:#111827;\n      padding-right:12px;\n      width:100%;\n      word-wrap:break-word;\n    }\n    .btn-cell {\n      display:table-cell;\n      vertical-align:middle;\n      text-align:right;\n      white-space:nowrap;\n      width:1%;\n    }\n\n    .btn {\n      background:#2563eb;\n      color:#ffffff !important;\n      text-decoration:none;\n      padding:10px 16px;\n      border-radius:6px;\n      font-size:13px;\n      font-weight:600;\n      border:1px solid #2563eb;\n      display:inline-block;\n    }\n  </style>\n</head>\n\n<body>\n  <div class=\"container\">\n    <h2>Select Any News Topic To Generate Post</h2>\n\n    <!-- ITEM 1 -->\n    <div class=\"item\">\n      <div class=\"text\">{{ $json.output.news[0].headline }}</div>\n      <div class=\"btn-cell\">\n        <a class=\"btn\" href=\"https://star123boy.app.n8n.cloud/webhook/d4b0fb35-a064-4aae-b64a-8fd7d78deed5?index=0&date={{ $('Schedule Trigger').item.json['Day of month'] }} {{ $('Schedule Trigger').item.json.Month }}\" target=\"_blank\">Select</a>\n      </div>\n    </div>\n\n    <!-- ITEM 2 -->\n    <div class=\"item\">\n      <div class=\"text\">{{ $json.output.news[1].headline }}</div>\n      <div class=\"btn-cell\">\n        <a class=\"btn\" href=\"https://star123boy.app.n8n.cloud/webhook/d4b0fb35-a064-4aae-b64a-8fd7d78deed5?index=1&date={{ $('Schedule Trigger').item.json['Day of month'] }} {{ $('Schedule Trigger').item.json.Month }}\" target=\"_blank\">Select</a>\n      </div>\n    </div>\n\n    <!-- ITEM 3 -->\n    <div class=\"item\">\n      <div class=\"text\">{{ $json.output.news[2].headline }}</div>\n      <div class=\"btn-cell\">\n        <a class=\"btn\" href=\"https://star123boy.app.n8n.cloud/webhook/d4b0fb35-a064-4aae-b64a-8fd7d78deed5?index=2&date={{ $('Schedule Trigger').item.json['Day of month'] }} {{ $('Schedule Trigger').item.json.Month }}\" target=\"_blank\">Select</a>\n      </div>\n    </div>\n\n    <!-- ITEM 4 -->\n    <div class=\"item\">\n      <div class=\"text\">{{ $json.output.news[3].headline }}</div>\n      <div class=\"btn-cell\">\n        <a class=\"btn\" href=\"https://star123boy.app.n8n.cloud/webhook/d4b0fb35-a064-4aae-b64a-8fd7d78deed5?index=3&date={{ $('Schedule Trigger').item.json['Day of month'] }} {{ $('Schedule Trigger').item.json.Month }}\" target=\"_blank\">Select</a>\n      </div>\n    </div>\n\n    <!-- ITEM 5 -->\n    <div class=\"item\">\n      <div class=\"text\">{{ $json.output.news[4].headline }}</div>\n      <div class=\"btn-cell\">\n        <a class=\"btn\" href=\"https://star123boy.app.n8n.cloud/webhook/d4b0fb35-a064-4aae-b64a-8fd7d78deed5?index=4&date={{ $('Schedule Trigger').item.json['Day of month'] }} {{ $('Schedule Trigger').item.json.Month }}\" target=\"_blank\">Select</a>\n      </div>\n    </div>\n\n  </div>\n</body>\n</html>\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        -6448,
+        -512
+      ],
+      "id": "685589d9-6288-4c26-b84c-ce7d7a8d5be1",
+      "name": "Send a message1",
+      "webhookId": "9486ad07-d204-4521-8ea8-1145734c1576",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "qe5rLpSjNKZ7m4HK",
+          "name": "Gmail account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "path": "d4b0fb35-a064-4aae-b64a-8fd7d78deed5",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -6144,
+        -432
+      ],
+      "id": "234703ea-8706-4ed5-985a-30171090f944",
+      "name": "Webhook1",
+      "webhookId": "d4b0fb35-a064-4aae-b64a-8fd7d78deed5"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1Vb4wmOiRJor2HY4uoJehP03e7filvW12_Ox1d2iRtpA",
+          "mode": "list",
+          "cachedResultName": "n8n",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1Vb4wmOiRJor2HY4uoJehP03e7filvW12_Ox1d2iRtpA/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1387036893,
+          "mode": "list",
+          "cachedResultName": "News",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1Vb4wmOiRJor2HY4uoJehP03e7filvW12_Ox1d2iRtpA/edit#gid=1387036893"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Date": "= {{ $('Schedule Trigger').item.json['Day of month'] }} {{ $('Schedule Trigger').item.json.Month }}",
+            "Topics": "={{ $json.output.news }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Date",
+              "displayName": "Date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Topics",
+              "displayName": "Topics",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -6464,
+        -320
+      ],
+      "id": "49f910df-1fdc-45cf-960c-0d9e5ff69f24",
+      "name": "Append row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "kDC7fjzXy2dueFIh",
+          "name": "Google Sheets account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": "gpt-4o-mini",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatAzureOpenAi",
+      "typeVersion": 1,
+      "position": [
+        -6720,
+        -32
+      ],
+      "id": "24c48771-3660-409a-a853-eda9424d4c36",
+      "name": "Azure OpenAI Chat Model3",
+      "credentials": {
+        "azureOpenAiApi": {
+          "id": "qXO4Ti1Hn1SutJZp",
+          "name": "Azure Open AI account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1Vb4wmOiRJor2HY4uoJehP03e7filvW12_Ox1d2iRtpA",
+          "mode": "list",
+          "cachedResultName": "n8n",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1Vb4wmOiRJor2HY4uoJehP03e7filvW12_Ox1d2iRtpA/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1387036893,
+          "mode": "list",
+          "cachedResultName": "News",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1Vb4wmOiRJor2HY4uoJehP03e7filvW12_Ox1d2iRtpA/edit#gid=1387036893"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "Date",
+              "lookupValue": "={{ $json.query.date }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -5872,
+        -432
+      ],
+      "id": "be54e442-4c00-4a49-8a9b-321753e9c549",
+      "name": "Get row(s) in sheet2",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "kDC7fjzXy2dueFIh",
+          "name": "Google Sheets account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "return {\"topics\":JSON.parse($input.first().json.Topics)}\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -5632,
+        -432
+      ],
+      "id": "5d58c6d7-a191-4868-ada3-2c9d39fe08c6",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={{ { \"headline\": $json.topics[ Number($('Webhook1').item.json.query.index) ].headline } }}\n\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -5488,
+        -432
+      ],
+      "id": "f2ec6f8d-de03-49c6-91c8-1c6b370f4b1e",
+      "name": "Edit Fields1"
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "=\n\n{\n\"products\": \n[\n{\n\"name\": \n\"AI Card vault\",\n\"description\": \n\"AI CardVault is an AI-powered business card scanning and lead management app designed for corporate networking. It instantly digitizes physical cards, auto-organizes contact details, and syncs seamlessly with CRMs like Salesforce, HubSpot, and Zoho. With offline functionality, multilingual support, and secure cloud storage, it ensures teams capture every lead without manual entry or errors. The platform stands out with advanced AI/OCR accuracy, dual web + mobile portals, batch scanning, custom annotations, and enterprise-grade security—helping businesses maximize event ROI, streamline follow-ups, and boost overall sales productivity.\",\n\"theme\": \n\"orange color tech based solutions company\"\n},\n{\n\"name\": \n\"Bizio\",\n\"description\": \n\"Business customer relation managing intelligence dashboard\",\n\"theme\": \n\"blue color solutions company name techify solutions \"\n}\n],\"Date\":\"{{ $('Get row(s) in sheet2').item.json.Date }}\",\"Event\":\"{{ $json.headline }}\"\n}\n\n",
+        "include": "none",
+        "options": {}
+      },
+      "id": "6f7582b5-ae1a-4754-b45a-ddea6fc1b43b",
+      "name": "Load Company Data1",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.2,
+      "position": [
+        -5152,
+        -432
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "f1f1fe0e-3b75-4f82-b27d-f65b033194cb",
+              "name": "prompt",
+              "value": "=Create a clean and professional thumbnail that blends the theme of {{ $json.Event }} with the company product {{ $json.products[0].name }}. \nUse visual elements inspired by {{ $json.products[0].description }} and {{ $json.products[0].theme }}.\nwhile creating image try to use characters and fummy emojes to make image eye catching.\n\nThe image must contain only:\non top the news allert of :{{ $json.Event }} with attractive font and emoje of news alert.\nOn bottom:A single punchline text {{ $json.output }}\nno other text is allowed and dont perform any spelling mistake.\n\n\n",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -4432,
+        -672
+      ],
+      "id": "14ad1b4c-4b16-441f-b52b-8ca9d0bac355",
+      "name": "Edit Fields2"
+    },
+    {
+      "parameters": {
+        "sendTo": "patelvedant1011@gmail.com",
+        "subject": "Post generation",
+        "message": "=<div style=\"font-size:16px; margin-bottom:12px;\">\n  {{ $json.description }}\n{{ $json.hastags }}\n</div>\n<div style=\"font-size:16px; margin-bottom:12px;\">Please approve or reject this request.</div>\n<br>\n<div>\n  <div>\n  <a href=\"https://star123boy.app.n8n.cloud/webhook/8f9dc3e7-31e1-47f8-9e4d-d9fea2927c3c?status=approve&date={{ $('Load Company Data1').item.json.Date }}\" \n     style=\"padding:10px 20px;background:#28a745;color:white;text-decoration:none;border-radius:6px;margin-right:10px;\">\n     APPROVE\n  </a>\n\n  <a href=\"https://n8n.techifysolutions.com/webhook/8f9dc3e7-31e1-47f8-9e4d-d9fea2927c3c?status=reject&date={{ $('Load Company Data1').item.json.Date }}\" \n     style=\"padding:10px 20px;background:#dc3545;color:white;text-decoration:none;border-radius:6px;margin-right:10px;\">\n     REJECT\n  </a>\n</div>",
+        "options": {
+          "attachmentsUi": {
+            "attachmentsBinary": [
+              {
+                "property": "edited"
+              }
+            ]
+          }
+        }
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        -3648,
+        -352
+      ],
+      "id": "9bc2eaa3-33cb-4ac5-b99d-bd429bd174df",
+      "name": "Send a message2",
+      "webhookId": "9486ad07-d204-4521-8ea8-1145734c1576",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "qe5rLpSjNKZ7m4HK",
+          "name": "Gmail account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=You are an expert LinkedIn content writer. \nYour task is to create a high-quality, engaging, and professional LinkedIn post description based on the topic provided below. \nFollow these rules:\n- Write in a clear, concise, business-friendly tone.\n- Add a strong opening hook to capture attention.\n- Highlight the importance or relevance of the topic.\n- Provide meaningful insights or value for professionals.\n- Keep the post positive, inspiring, and thought-provoking.\n- Include 3–5 crisp bullet points (only if necessary).\n- Add a subtle call-to-action (CTA) at the end.\n- Avoid hashtags; I will add them separately.\n- Maintain a maximum length of 4–6 lines unless the topic requires more.\ngenerate the description with decorative emogies and make it most attractive in html format.\nTopic:\n{{ $json.Event }}\nProduct Details:\n{{ $json.products[1].name }}  {{ $json.products[1].description }}\nNow generate the LinkedIn post description.\noutput must not start with ''' html, but must contain html required.\n\n",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3,
+      "position": [
+        -4736,
+        -288
+      ],
+      "id": "d810106b-9979-45a5-992c-5b24f91e8a6e",
+      "name": "AI Agent3"
+    },
+    {
+      "parameters": {
+        "model": "gpt-4o-mini",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatAzureOpenAi",
+      "typeVersion": 1,
+      "position": [
+        -4736,
+        -80
+      ],
+      "id": "0c777469-6920-4005-9692-c66699777867",
+      "name": "Azure OpenAI Chat Model1",
+      "credentials": {
+        "azureOpenAiApi": {
+          "id": "qXO4Ti1Hn1SutJZp",
+          "name": "Azure Open AI account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.products[0].name }} a {{ $json.products[0].description }} this is my product description and today i got a news of {{ $json.Event }}. so give me a single punch line (or a funny meme if relatable only) that i can use in a post of linkedin and must be related to the product provided. just give pure text only nothing else .plain text only no symbols. the length of sentence must be only max 10 words.",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3,
+      "position": [
+        -4912,
+        -688
+      ],
+      "id": "7c4ff00a-a0e4-4431-bede-fdca309324b9",
+      "name": "AI Agent4"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -4592,
+        -672
+      ],
+      "id": "27afa0c9-8458-4e79-a56c-727235d749b3",
+      "name": "Merge3"
+    },
+    {
+      "parameters": {
+        "resource": "image",
+        "modelId": {
+          "__rl": true,
+          "value": "models/gemini-2.5-flash-image",
+          "mode": "list",
+          "cachedResultName": "models/gemini-2.5-flash-image (Nano Banana)"
+        },
+        "prompt": "={{ $json.prompt }}",
+        "options": {
+          "binaryPropertyOutput": "image"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.googleGemini",
+      "typeVersion": 1,
+      "position": [
+        -4208,
+        -672
+      ],
+      "id": "11dbb43c-bd8c-4252-a13c-af3b1682359f",
+      "name": "Generate an image",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "zSqVKIi5MtiSdrCw",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -3920,
+        -352
+      ],
+      "id": "ed8138fe-e427-4003-b344-00ecf5275ab2",
+      "name": "Merge4"
+    },
+    {
+      "parameters": {
+        "model": "gpt-4o-mini",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatAzureOpenAi",
+      "typeVersion": 1,
+      "position": [
+        -4912,
+        -512
+      ],
+      "id": "02795475-6a47-400f-ad75-91f1fcb0c27e",
+      "name": "Azure OpenAI Chat Model5",
+      "credentials": {
+        "azureOpenAiApi": {
+          "id": "qXO4Ti1Hn1SutJZp",
+          "name": "Azure Open AI account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{ $json.query.status }}",
+              "operation": "contains",
+              "value2": "approve"
+            }
+          ]
+        }
+      },
+      "id": "01dcac4d-069f-412c-ab39-5a3da3eb7172",
+      "name": "Check Decision",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [
+        -2832,
+        -544
+      ]
+    },
+    {
+      "parameters": {
+        "path": "8f9dc3e7-31e1-47f8-9e4d-d9fea2927c3c",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -2976,
+        -544
+      ],
+      "id": "c0127369-2333-4b58-a668-a5429b22965c",
+      "name": "Webhook2",
+      "webhookId": "8f9dc3e7-31e1-47f8-9e4d-d9fea2927c3c"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1Vb4wmOiRJor2HY4uoJehP03e7filvW12_Ox1d2iRtpA",
+          "mode": "list",
+          "cachedResultName": "n8n",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1Vb4wmOiRJor2HY4uoJehP03e7filvW12_Ox1d2iRtpA/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 942014071,
+          "mode": "list",
+          "cachedResultName": "selected news",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1Vb4wmOiRJor2HY4uoJehP03e7filvW12_Ox1d2iRtpA/edit#gid=942014071"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "Event",
+              "lookupValue": "={{ $json.query.date }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -2336,
+        -656
+      ],
+      "id": "51b30cb7-bcb7-438e-978f-99cad8b7d1af",
+      "name": "Get row(s) in sheet3",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "kDC7fjzXy2dueFIh",
+          "name": "Google Sheets account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -1888,
+        -528
+      ],
+      "id": "fb48e151-f859-4f02-8276-59762984dfd9",
+      "name": "Merge5"
+    },
+    {
+      "parameters": {
+        "authentication": "communityManagement",
+        "postAs": "organization",
+        "shareMediaCategory": "IMAGE",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.linkedIn",
+      "typeVersion": 1,
+      "position": [
+        -1664,
+        -560
+      ],
+      "id": "861c0e8f-8e32-460e-a409-5f4e045267ce",
+      "name": "Create a post1"
+    },
+    {
+      "parameters": {
+        "resource": "fileFolder",
+        "queryString": "AI CV Logo",
+        "limit": 1,
+        "filter": {
+          "folderId": {
+            "__rl": true,
+            "value": "1Ltyly5Fkq81K-C-23JlAORFy9lL6iU6r",
+            "mode": "list",
+            "cachedResultName": "logo",
+            "cachedResultUrl": "https://drive.google.com/drive/folders/1Ltyly5Fkq81K-C-23JlAORFy9lL6iU6r"
+          }
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        -4400,
+        -928
+      ],
+      "id": "7fb88df7-ee83-4879-9b1b-fbb36988f333",
+      "name": "Search files and folders3",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "8RZVNNUjldhgtnxL",
+          "name": "Google Drive account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "download",
+        "fileId": {
+          "__rl": true,
+          "value": "={{ $json.id }}",
+          "mode": "id"
+        },
+        "options": {
+          "binaryPropertyName": "logo"
+        }
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        -4224,
+        -928
+      ],
+      "id": "778951f4-1e3e-4b45-a025-b4b3961f1582",
+      "name": "Download file3",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "8RZVNNUjldhgtnxL",
+          "name": "Google Drive account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "image",
+        "operation": "edit",
+        "prompt": "Keep everything exactly as it is. If you find any suitable place where a logo can be added, replace the existing logo in the generated image. Do not place both logos together. Position the logo in a corner where it looks natural and visually balanced. Ensure the logo has no background and blends well with the overall design.put no more than two logos. Dont change the dimention of generated image . ",
+        "images": {
+          "values": [
+            {
+              "binaryPropertyName": "image"
+            },
+            {
+              "binaryPropertyName": "logo"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.googleGemini",
+      "typeVersion": 1,
+      "position": [
+        -3856,
+        -784
+      ],
+      "id": "9e126f0b-8c14-4ed2-961d-fed0b67c377c",
+      "name": "Edit an image1",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "zSqVKIi5MtiSdrCw",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -4048,
+        -784
+      ],
+      "id": "f5524a77-37d4-461d-9f73-d39b1c413a9d",
+      "name": "Merge7"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=\n\"Analyze the post caption to generate 15-20 highly relevant hashtags.\\n\\n\"\n        \"You will receive:\\n\"\n        \"- Post caption : {{ $json.output }} \\n\"\n        \"- Product name:{{ $('Load Company Data1').item.json.products[1].name }}\\n\"\n        \"- Product description:{{ $('Load Company Data1').item.json.products[1].description }}\\n\"\n        \"Steps to follow:\\n\"\n        \"1. Combine insights from post caption\\n\"\n        \"2. Identify main themes, keywords, industry, and target audience\\n\"\n        \"3. Research trending and relevant hashtags in that niche\\n\"\n        \"4. Generate a mix of:\\n\"\n        \"   - Broad hashtags (high volume, competitive)\\n\"\n        \"   - Niche hashtags (targeted, specific)\\n\"\n        \"   - Trending hashtags (current popular tags)\\n\"\n        \"   - Visual-specific tags (e.g., #Photography, #Design)\\n\"\n        \"5. Ensure hashtags are:\\n\"\n        \"   - Relevant to both visual and textual content\\n\"\n        \"   - Platform-appropriate\\n\"\n        \"   - Not spammy or banned\\n\"\n        \"   - Spelled correctly\\n\"\n        \"   - Easy to read (proper capitalization for multi-word tags)\\n\"\nexpected_output=(\n        \"A list of 10-15 hashtags in the format: #Hashtag1 #Hashtag2 #Hashtag3 ...\\n\"\n        \"Only return the hashtags, no explanations or additional text.\"\n    )",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3,
+      "position": [
+        -4512,
+        -288
+      ],
+      "id": "da1b9325-2642-4c7f-b191-08b1e358b774",
+      "name": "AI Agent1"
+    },
+    {
+      "parameters": {
+        "model": "gpt-4o-mini",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatAzureOpenAi",
+      "typeVersion": 1,
+      "position": [
+        -4512,
+        -96
+      ],
+      "id": "8a0b3c7e-459b-4910-8c9a-c4834983cb82",
+      "name": "Azure OpenAI Chat Model",
+      "credentials": {
+        "azureOpenAiApi": {
+          "id": "qXO4Ti1Hn1SutJZp",
+          "name": "Azure Open AI account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "04ae372b-dba6-4ef1-9978-c7598d6a03f5",
+              "name": "hastags",
+              "value": "={{ $json.output }}",
+              "type": "string"
+            },
+            {
+              "id": "6b9ef9bc-9348-4dae-a50f-dc156002df89",
+              "name": "description",
+              "value": "={{ $('AI Agent3').item.json.output }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -4240,
+        -288
+      ],
+      "id": "f984ff70-de79-4cac-a1a2-0f49cf6b75c6",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "operation": "upload",
+        "bucketName": "n8n-post-generations",
+        "fileName": "=news/{{ $('Load Company Data1').item.json.Date }}",
+        "binaryPropertyName": "edited",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.s3",
+      "typeVersion": 1,
+      "position": [
+        -3568,
+        -832
+      ],
+      "id": "96a8011b-94c3-4d23-8766-86f9dc941cd3",
+      "name": "Upload a file",
+      "credentials": {
+        "s3": {
+          "id": "amqwvvZOBWA38rmv",
+          "name": "S3 account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "bucketName": "n8n-post-generations",
+        "fileKey": "=news/{{ $json.query.date }}"
+      },
+      "type": "n8n-nodes-base.s3",
+      "typeVersion": 1,
+      "position": [
+        -2320,
+        -496
+      ],
+      "id": "e3108b6a-a704-426d-aed0-ad27bee40314",
+      "name": "Download a file",
+      "credentials": {
+        "s3": {
+          "id": "amqwvvZOBWA38rmv",
+          "name": "S3 account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1Vb4wmOiRJor2HY4uoJehP03e7filvW12_Ox1d2iRtpA",
+          "mode": "list",
+          "cachedResultName": "n8n",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1Vb4wmOiRJor2HY4uoJehP03e7filvW12_Ox1d2iRtpA/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 942014071,
+          "mode": "list",
+          "cachedResultName": "selected news",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1Vb4wmOiRJor2HY4uoJehP03e7filvW12_Ox1d2iRtpA/edit#gid=942014071"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Date ": "={{ $('Load Company Data1').item.json.Date }}",
+            "Description": "={{ $json.description }}\n{{ $json.hastags }}",
+            "News ": "={{ $('Load Company Data1').item.json.Event }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Date ",
+              "displayName": "Date ",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "News ",
+              "displayName": "News ",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Description",
+              "displayName": "Description",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -4016,
+        -176
+      ],
+      "id": "51ca7ff7-aaf8-4418-8128-373b1cf325a0",
+      "name": "Append row in sheet1",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "kDC7fjzXy2dueFIh",
+          "name": "Google Sheets account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "https://techcrunch.com/feed/",
+        "options": {}
+      },
+      "name": "Fetch RSS Feed",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        -7408,
+        -240
+      ],
+      "id": "6a5047ef-54b4-4c29-8824-3bbb45b79827"
+    },
+    {
+      "parameters": {
+        "jsCode": "const data = $input.all()[0];\nlet xml = '';\n\nif (data.body) {\n  xml = typeof data.body === 'string' ? data.body : JSON.stringify(data.body);\n} else if (typeof data === 'string') {\n  xml = data;\n} else {\n  xml = JSON.stringify(data);\n}\n\nif (!xml || xml.length === 0) {\n  return { headlines: [] };\n}\n\nconst headlines = [];\n\n// Extract title elements from RSS\nconst titleRegex = /<title[^>]*>([^<]+)<\\/title>/gi;\nlet match;\nlet count = 0;\n\nwhile ((match = titleRegex.exec(xml)) !== null && count < 20) {\n  const title = match[1]?.trim();\n\n  // Skip the main feed title (first one) and filter empty titles\n  if (title && title.length > 5 && title !== 'TechCrunch') {\n    if (!headlines.includes(title)) {\n      headlines.push(title);\n      count++;\n    }\n  }\n}\n\nreturn { headlines };\n"
+      },
+      "name": "Extract Headlines from RSS",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -7312,
+        -240
+      ],
+      "id": "d6c84510-f469-4804-8eab-100d2383bbef"
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {}
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -7664,
+        -352
+      ],
+      "id": "db0e2836-73c6-493d-9020-41da456f9097",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -6992,
+        -416
+      ],
+      "id": "2ad8d727-676e-4abb-89cc-075806134b9d",
+      "name": "Merge"
+    }
+  ],
+  "pinData": {
+    "Webhook2": [
+      {
+        "json": {
+          "headers": {
+            "host": "star123boy.app.n8n.cloud",
+            "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36",
+            "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
+            "accept-encoding": "gzip, br",
+            "accept-language": "en-US,en;q=0.9,gu;q=0.8",
+            "cdn-loop": "cloudflare; loops=1; subreqs=1",
+            "cf-connecting-ip": "43.242.116.1",
+            "cf-ew-via": "15",
+            "cf-ipcountry": "IN",
+            "cf-ray": "9a15eb94d0a3ff9f-BOM",
+            "cf-visitor": "{\"scheme\":\"https\"}",
+            "cf-worker": "n8n.cloud",
+            "cookie": "rl_page_init_referrer=RudderEncrypt%3AU2FsdGVkX18w878oOOG%2BwGYlnTtYeJ2OQ4OtCdvYISE%3D; rl_page_init_referring_domain=RudderEncrypt%3AU2FsdGVkX1%2FdXz4lCcTVRgv4H83rxByNzFJq5aZ0JF4%3D; _fbp=fb.1.1763108377545.218178073381896360; _gcl_au=1.1.1861775792.1763033796; _ga=GA1.1.230603998.1763033798; _ga_0SC4FF2FH9=GS2.1.s1763616443$o12$g1$t1763616449$j54$l0$h0; rl_anonymous_id=RudderEncrypt%3AU2FsdGVkX1%2BiE%2FVhsYt8fP%2FSUUgUdZ%2BrgT2DomKee1Th4MCX5ciaReSIFKsUl0c7F4ezaJO9ROnsFvxSYXTPRQ%3D%3D; rl_user_id=RudderEncrypt%3AU2FsdGVkX1%2BxukkUnEHcZEFppIVKbXGrZuiRHH3eEOIkxm8pOQhdMQNd14kHX8Su6%2BVg011f62yJtFRoygNjF3Sy7W6HfJOGJ4a1Bv6dctsZiZvyPNNx%2BUQTajQgJ5eZM9CsKm6CSHQa4tOhITcEDWfIMhXSCxE4r%2FBzIX0aRpA%3D; rl_trait=RudderEncrypt%3AU2FsdGVkX1%2Big7iEnlzbdO%2BEtt2tufUMRG4RdrVy03DpEtZpMgzqgJZQ8Be2MfpJYKFy2SvS9Q1E0%2B%2Bm2Ug3xmjQsqbDi00W7ASkPoauC2%2FWX0zKWt1gAKeePFqkRi4Z%2FXtxQVZ3PbbwQg7u3P%2FO0BZ%2Bg%2BEDMm6GqErprInbQUaqV4FW4Z9qm9qzy5SfwBN8Vs6bmfD0lvWNwIbqgCWJEw%3D%3D; n8n_anonymous_id=1e9306f0-4177-447b-81f1-424ba5c9ca12; rl_session=RudderEncrypt%3AU2FsdGVkX18xEdmQaZSp8FjWJ%2B0YfDgPkZ%2F4tI2nsbvETOGDk4Yo4Ht4%2F9Mns6kA40CnogJzQVD75jlv6ellJ09ZOI8DXNKnzpJMKVcc58dVHJ%2BUq4csf3mWYxs7FYNpfWiZgdV60%2FQb8kJTKnFrIg%3D%3D; ph_phc_4URIAm1uYfJO7j8kWSe0J8lc8IqnstRLS7Jx8NcakHo_posthog=%7B%22distinct_id%22%3A%22973a43b3b559cba3ab83780c71e4e0f1481af31f8517e2e4d67693671b6f6a47%239cebf906-4c99-48f7-924b-7d70be474cb3%22%2C%22%24sesid%22%3A%5B1763620431732%2C%22019a9fbb-7012-7189-a5a0-2e9f279ecc5a%22%2C1763616452625%5D%2C%22%24epp%22%3Atrue%2C%22%24initial_person_info%22%3A%7B%22r%22%3A%22%24direct%22%2C%22u%22%3A%22https%3A%2F%2Fvedant4951.app.n8n.cloud%2Fsignout%22%7D%7D",
+            "priority": "u=0, i",
+            "sec-ch-ua": "\"Chromium\";v=\"142\", \"Google Chrome\";v=\"142\", \"Not_A Brand\";v=\"99\"",
+            "sec-ch-ua-mobile": "?0",
+            "sec-ch-ua-platform": "\"Windows\"",
+            "sec-fetch-dest": "document",
+            "sec-fetch-mode": "navigate",
+            "sec-fetch-site": "none",
+            "sec-fetch-user": "?1",
+            "upgrade-insecure-requests": "1",
+            "x-forwarded-for": "43.242.116.1, 172.69.86.72",
+            "x-forwarded-host": "star123boy.app.n8n.cloud",
+            "x-forwarded-port": "443",
+            "x-forwarded-proto": "https",
+            "x-forwarded-server": "traefik-prod-users-gwc-8-86454fd949-sbzxg",
+            "x-is-trusted": "yes",
+            "x-real-ip": "43.242.116.1"
+          },
+          "params": {},
+          "query": {
+            "status": "approve",
+            "date": "25 December"
+          },
+          "body": {},
+          "webhookUrl": "https://star123boy.app.n8n.cloud/webhook-test/8f9dc3e7-31e1-47f8-9e4d-d9fea2927c3c",
+          "executionMode": "test"
+        }
+      }
+    ]
+  },
+  "connections": {
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Send a message1",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Append row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Configure Technologies": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Azure OpenAI Chat Model2": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook1": {
+      "main": [
+        [
+          {
+            "node": "Get row(s) in sheet2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Azure OpenAI Chat Model3": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Structured Output Parser",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s) in sheet2": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields1": {
+      "main": [
+        [
+          {
+            "node": "Load Company Data1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Load Company Data1": {
+      "main": [
+        [
+          {
+            "node": "AI Agent4",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge3",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Edit Fields2": {
+      "main": [
+        [
+          {
+            "node": "Generate an image",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent3": {
+      "main": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Azure OpenAI Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent3",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent4": {
+      "main": [
+        [
+          {
+            "node": "Merge3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge3": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate an image": {
+      "main": [
+        []
+      ]
+    },
+    "Azure OpenAI Chat Model5": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent4",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Decision": {
+      "main": [
+        [
+          {
+            "node": "Get row(s) in sheet3",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Download a file",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    },
+    "Webhook2": {
+      "main": [
+        [
+          {
+            "node": "Check Decision",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s) in sheet3": {
+      "main": [
+        [
+          {
+            "node": "Merge5",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Search files and folders3": {
+      "main": [
+        [
+          {
+            "node": "Download file3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Download file3": {
+      "main": [
+        [
+          {
+            "node": "Merge7",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit an image1": {
+      "main": [
+        [
+          {
+            "node": "Merge4",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Upload a file",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge7": {
+      "main": [
+        [
+          {
+            "node": "Edit an image1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent1": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Azure OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Merge4",
+            "type": "main",
+            "index": 1
+          },
+          {
+            "node": "Append row in sheet1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Download a file": {
+      "main": [
+        [
+          {
+            "node": "Merge5",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge4": {
+      "main": [
+        [
+          {
+            "node": "Send a message2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch RSS Feed": {
+      "main": [
+        [
+          {
+            "node": "Extract Headlines from RSS",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Headlines from RSS": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Fetch RSS Feed",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Configure Technologies",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "a40fcb86-21df-4be6-8776-6b67487803f0",
+  "meta": {
+    "instanceId": "b2812ad670e27d42a406705791cd99c0d795900cb2527226b3c83ce70b582f73"
+  },
+  "id": "cj9WLOffHiVrfIo5",
+  "tags": []
+}
